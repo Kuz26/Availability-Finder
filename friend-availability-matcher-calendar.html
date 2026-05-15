@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friend Availability Matcher</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      padding: 32px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 48px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.25rem;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .primary {
+      background: var(--primary);
+      color: white;
+      margin-top: 16px;
+      width: 100%;
+    }
+
+    .primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .secondary {
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .summary-list, .entry-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result, .entry {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .result strong, .entry strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .badge.good {
+      background: #dcfce7;
+      color: var(--success);
+    }
+
+    .badge.ok {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge.low {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .comments {
+      margin-top: 8px;
+      color: #374151;
+      font-size: 0.92rem;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .calendar-title {
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .calendar-nav {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 8px 10px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .calendar-day-name {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 0;
+    }
+
+    .calendar-day {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 0;
+    }
+
+    .calendar-day:hover {
+      border-color: var(--primary);
+    }
+
+    .calendar-day.selected {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .calendar-day.today {
+      outline: 2px solid #bfdbfe;
+    }
+
+    .calendar-day.blank {
+      border: none;
+      background: transparent;
+      cursor: default;
+    }
+
+    .selected-dates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .date-pill {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 800px) {
+      .grid, .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Friend Availability Matcher</h1>
+    <p>Add everyone’s available dates and times, then find the best overlap.</p>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <h2>Add availability</h2>
+        <form id="availabilityForm">
+          <label for="name">Name</label>
+          <input id="name" name="name" placeholder="e.g. Kurren" required />
+
+          <label>Available dates</label>
+          <div class="calendar-header">
+            <button class="calendar-nav" id="prevMonth" type="button">‹</button>
+            <div class="calendar-title" id="calendarTitle"></div>
+            <button class="calendar-nav" id="nextMonth" type="button">›</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="selected-dates" id="selectedDates"></div>
+
+          <div class="row">
+            <div>
+              <label for="startTime">Start time</label>
+              <input id="startTime" name="startTime" type="time" required />
+            </div>
+            <div>
+              <label for="endTime">End time</label>
+              <input id="endTime" name="endTime" type="time" required />
+            </div>
+          </div>
+
+          <label for="comment">Suggestion / comment</label>
+          <textarea id="comment" name="comment" placeholder="e.g. Dinner, pub, brunch, activity, flexible after work..."></textarea>
+
+          <button class="primary" type="submit">Add availability</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Best matching options</h2>
+        <div id="results" class="summary-list"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>All entries</h2>
+      <div class="actions">
+        <button class="secondary" id="exportBtn" type="button">Export data</button>
+        <button class="secondary" id="importBtn" type="button">Import data</button>
+        <button class="danger" id="clearBtn" type="button">Clear all</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json" hidden />
+      <div id="entries" class="entry-list" style="margin-top: 16px;"></div>
+    </section>
+
+    <footer>
+      Data is stored locally in this browser. For a live shared version, connect it to Supabase or Firebase.
+    </footer>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "friendAvailabilityMatcher.entries.v1";
+    const FRIEND_COUNT = 5;
+
+    const form = document.getElementById("availabilityForm");
+    const resultsEl = document.getElementById("results");
+    const entriesEl = document.getElementById("entries");
+    const clearBtn = document.getElementById("clearBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+    const calendarTitle = document.getElementById("calendarTitle");
+    const calendarGrid = document.getElementById("calendarGrid");
+    const selectedDatesEl = document.getElementById("selectedDates");
+    const prevMonthBtn = document.getElementById("prevMonth");
+    const nextMonthBtn = document.getElementById("nextMonth");
+
+    let calendarMonth = new Date();
+    calendarMonth.setDate(1);
+    let selectedDates = new Set();
+
+    function loadEntries() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(`${dateString}T00:00:00`);
+      return date.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function timeToMinutes(time) {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    }
+
+    function minutesToTime(totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
+      const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+      return `${hours}:${minutes}`;
+    }
+
+    function toDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function renderSelectedDates() {
+      const dates = [...selectedDates].sort();
+      if (!dates.length) {
+        selectedDatesEl.innerHTML = `<span class="empty">No dates selected yet.</span>`;
+        return;
+      }
+
+      selectedDatesEl.innerHTML = dates
+        .map(date => `<span class="date-pill">${formatDate(date)}</span>`)
+        .join("");
+    }
+
+    function renderCalendar() {
+      const year = calendarMonth.getFullYear();
+      const month = calendarMonth.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const todayKey = toDateKey(new Date());
+      const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const leadingBlanks = (firstDay.getDay() + 6) % 7;
+
+      calendarTitle.textContent = firstDay.toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric"
+      });
+
+      const cells = dayNames.map(day => `<div class="calendar-day-name">${day}</div>`);
+
+      for (let i = 0; i < leadingBlanks; i++) {
+        cells.push(`<button class="calendar-day blank" type="button" disabled></button>`);
+      }
+
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dateKey = toDateKey(date);
+        const classes = ["calendar-day"];
+        if (selectedDates.has(dateKey)) classes.push("selected");
+        if (dateKey === todayKey) classes.push("today");
+
+        cells.push(`
+          <button class="${classes.join(" ")}" type="button" data-date="${dateKey}">
+            ${day}
+          </button>
+        `);
+      }
+
+      calendarGrid.innerHTML = cells.join("");
+      renderSelectedDates();
+    }
+
+    function getOverlapForDate(entriesForDate) {
+      const groupedByPerson = {};
+
+      entriesForDate.forEach(entry => {
+        if (!groupedByPerson[entry.name]) groupedByPerson[entry.name] = [];
+        groupedByPerson[entry.name].push(entry);
+      });
+
+      const people = Object.keys(groupedByPerson);
+      if (people.length === 0) return null;
+
+      const latestStart = Math.max(...entriesForDate.map(entry => timeToMinutes(entry.startTime)));
+      const earliestEnd = Math.min(...entriesForDate.map(entry => timeToMinutes(entry.endTime)));
+
+      return {
+        people,
+        hasOverlap: latestStart < earliestEnd,
+        overlapStart: latestStart,
+        overlapEnd: earliestEnd
+      };
+    }
+
+    function calculateResults(entries) {
+      const byDate = entries.reduce((acc, entry) => {
+        acc[entry.date] = acc[entry.date] || [];
+        acc[entry.date].push(entry);
+        return acc;
+      }, {});
+
+      return Object.entries(byDate)
+        .map(([date, dateEntries]) => {
+          const overlap = getOverlapForDate(dateEntries);
+          const people = [...new Set(dateEntries.map(entry => entry.name))];
+          const comments = dateEntries
+            .filter(entry => entry.comment.trim())
+            .map(entry => `${entry.name}: ${entry.comment.trim()}`);
+
+          return {
+            date,
+            availableCount: people.length,
+            people,
+            comments,
+            hasOverlap: overlap?.hasOverlap || false,
+            overlapStart: overlap?.overlapStart,
+            overlapEnd: overlap?.overlapEnd
+          };
+        })
+        .sort((a, b) => {
+          if (b.availableCount !== a.availableCount) return b.availableCount - a.availableCount;
+          if (b.hasOverlap !== a.hasOverlap) return Number(b.hasOverlap) - Number(a.hasOverlap);
+          return a.date.localeCompare(b.date);
+        });
+    }
+
+    function badgeClass(count) {
+      if (count >= FRIEND_COUNT) return "good";
+      if (count >= 3) return "ok";
+      return "low";
+    }
+
+    function renderResults(entries) {
+      const results = calculateResults(entries);
+
+      if (!results.length) {
+        resultsEl.innerHTML = `<p class="empty">No availability added yet.</p>`;
+        return;
+      }
+
+      resultsEl.innerHTML = results.map(result => {
+        const overlapText = result.hasOverlap
+          ? `${minutesToTime(result.overlapStart)}–${minutesToTime(result.overlapEnd)}`
+          : "No full overlap yet";
+
+        const commentHtml = result.comments.length
+          ? `<div class="comments">${result.comments.map(comment => `<div>• ${escapeHtml(comment)}</div>`).join("")}</div>`
+          : `<div class="comments empty">No comments yet.</div>`;
+
+        return `
+          <div class="result">
+            <strong>${formatDate(result.date)}</strong>
+            <div class="meta">Best overlap: ${overlapText}</div>
+            <span class="badge ${badgeClass(result.availableCount)}">${result.availableCount}/${FRIEND_COUNT} available</span>
+            <div class="meta" style="margin-top: 8px;">${result.people.map(escapeHtml).join(", ")}</div>
+            ${commentHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderEntries(entries) {
+      if (!entries.length) {
+        entriesEl.innerHTML = `<p class="empty">No entries yet.</p>`;
+        return;
+      }
+
+      entriesEl.innerHTML = entries
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+        .map(entry => `
+          <div class="entry">
+            <strong>${escapeHtml(entry.name)}</strong>
+            <div class="meta">${formatDate(entry.date)} · ${entry.startTime}–${entry.endTime}</div>
+            <div>${entry.comment ? escapeHtml(entry.comment) : "<span class='empty'>No comment</span>"}</div>
+            <button class="danger" style="margin-top: 10px;" onclick="deleteEntry('${entry.id}')">Delete</button>
+          </div>
+        `).join("");
+    }
+
+    function render() {
+      const entries = loadEntries();
+      renderResults(entries);
+      renderEntries(entries);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    window.deleteEntry = function(id) {
+      const entries = loadEntries().filter(entry => entry.id !== id);
+      saveEntries(entries);
+      render();
+    };
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const name = formData.get("name").trim();
+      const dates = [...selectedDates].sort();
+      const startTime = formData.get("startTime");
+      const endTime = formData.get("endTime");
+      const comment = formData.get("comment").trim();
+
+      if (!dates.length) {
+        alert("Please select at least one available date from the calendar.");
+        return;
+      }
+
+      if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
+        alert("End time must be after start time.");
+        return;
+      }
+
+      const entries = loadEntries();
+      dates.forEach(date => {
+        entries.push({
+          id: crypto.randomUUID(),
+          name,
+          date,
+          startTime,
+          endTime,
+          comment,
+          createdAt: new Date().toISOString()
+        });
+      });
+
+      saveEntries(entries);
+      form.reset();
+      selectedDates.clear();
+      renderCalendar();
+      render();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Clear all availability entries?")) {
+        saveEntries([]);
+        render();
+      }
+    });
+
+    exportBtn.addEventListener("click", () => {
+      const entries = loadEntries();
+      const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "friend-availability-data.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener("click", () => importFile.click());
+
+    prevMonthBtn.addEventListener("click", () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() - 1);
+      renderCalendar();
+    });
+
+    nextMonthBtn.addEventListener("click", () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() + 1);
+      renderCalendar();
+    });
+
+    calendarGrid.addEventListener("click", event => {
+      const button = event.target.closest("button[data-date]");
+      if (!button) return;
+
+      const date = button.dataset.date;
+      if (selectedDates.has(date)) {
+        selectedDates.delete(date);
+      } else {
+        selectedDates.add(date);
+      }
+
+      renderCalendar();
+    });
+
+    importFile.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const importedEntries = JSON.parse(reader.result);
+          if (!Array.isArray(importedEntries)) throw new Error("Invalid file");
+          saveEntries(importedEntries);
+          render();
+        } catch {
+          alert("Could not import this file. Please use a valid exported JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    renderCalendar();
+    render();
+  </script>
+</body>
+</html>
